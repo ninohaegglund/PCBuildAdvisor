@@ -1,6 +1,11 @@
 ﻿namespace PCBuildAdvisor.Api;
 
-public class BuildPurpose
+public enum BuildPurpose
 {
-
+    Gaming,
+    Streaming,
+    ContentCreation,
+    OfficeWork,
+    Development,
+    AiMl
 }
