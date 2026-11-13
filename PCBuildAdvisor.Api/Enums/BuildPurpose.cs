@@ -1,4 +1,4 @@
-﻿namespace PCBuildAdvisor.Api;
+namespace PCBuildAdvisor.Api.Enums;
 
 public enum BuildPurpose
 {

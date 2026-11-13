@@ -10,4 +10,6 @@ public class BuildRequest
     public List<int> GameIds { get; set; } = [];
     public string? CpuPreference { get; set; }
     public string? GpuPreference { get; set; }
+    public decimal? MaximumEstimatedBudget { get; set; }
+    public string PerformanceGoal { get; set; } = "balanced";
 }

@@ -1,6 +1,6 @@
-﻿namespace PCBuildAdvisor.Api;
-
-public class CompatibilityRule
+﻿namespace PCBuildAdvisor.Api.Rules.Compatibility
 {
-
+    public class CompatibilityRule
+    {
+    }
 }

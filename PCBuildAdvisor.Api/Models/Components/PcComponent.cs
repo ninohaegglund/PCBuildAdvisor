@@ -10,16 +10,15 @@ public class PcComponent
     public string Manufacturer { get; set; } = string.Empty;
     public string ModelNumber { get; set; } = string.Empty;
     public string? Description { get; set; }
-
-    // Compatibility information. Only the properties relevant to a component type need values.
+    public decimal? EstimatedPrice { get; set; }
+    public string PerformanceTier { get; set; } = "mid";
+    public Dictionary<string, string> Specifications { get; set; } = [];
     public string? Socket { get; set; }
     public string? MemoryType { get; set; }
     public string? FormFactor { get; set; }
     public List<string> SupportedSockets { get; set; } = [];
     public List<string> SupportedMemoryTypes { get; set; } = [];
     public List<string> SupportedFormFactors { get; set; } = [];
-
-    // Physical and power requirements.
     public int? PowerConsumptionWatts { get; set; }
     public int? Wattage { get; set; }
     public int? LengthMm { get; set; }
