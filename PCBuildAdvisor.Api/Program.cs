@@ -5,7 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<PCBuildAdvisor.Api.Data.AdvisorDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("AdvisorDatabase")));
 
-builder.Services.AddSingleton<PCBuildAdvisor.Api.Repositories.BuildRepository>();
+builder.Services.AddScoped<PCBuildAdvisor.Api.Repositories.BuildRepository>();
 builder.Services.AddScoped<PCBuildAdvisor.Api.Services.CatalogService>();
 builder.Services.AddScoped<PCBuildAdvisor.Api.Services.Interfaces.IBuildAdvisorService,
     PCBuildAdvisor.Api.Services.BuildAdvisorService>();

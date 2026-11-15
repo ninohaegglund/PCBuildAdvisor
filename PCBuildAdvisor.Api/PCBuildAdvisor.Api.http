@@ -1,6 +1,33 @@
 @PCBuildAdvisor.Api_HostAddress = http://localhost:5213
 
-GET {{PCBuildAdvisor.Api_HostAddress}}/weatherforecast/
+GET {{PCBuildAdvisor.Api_HostAddress}}/api/games
 Accept: application/json
 
 ###
+
+GET {{PCBuildAdvisor.Api_HostAddress}}/api/components?type=Cpu
+Accept: application/json
+
+###
+
+# Mode 0 = GameOptimized, purpose 0 = Gaming, resolution 0 = FullHd1080p.
+# Populate gameIds using IDs returned by /api/games.
+POST {{PCBuildAdvisor.Api_HostAddress}}/api/builds/recommend
+Content-Type: application/json
+
+{
+  "mode": 0,
+  "purpose": 0,
+  "targetResolution": 0,
+  "gameIds": [],
+  "maximumEstimatedBudget": 1200,
+  "performanceGoal": "balanced"
+}
+
+###
+
+# An empty build should report missing components.
+POST {{PCBuildAdvisor.Api_HostAddress}}/api/builds/evaluate
+Content-Type: application/json
+
+{}

@@ -5,6 +5,6 @@ namespace PCBuildAdvisor.Api.Services.Interfaces;
 
 public interface IBuildAdvisorService
 {
-    BuildRecommendation GenerateBuild(BuildRequest request);
+    Task<BuildRecommendation> GenerateBuildAsync(BuildRequest request, CancellationToken cancellationToken = default);
     BuildRecommendation EvaluateBuild(ComputerBuild build);
 }
