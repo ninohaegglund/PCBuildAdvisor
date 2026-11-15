@@ -16,7 +16,12 @@ public class BuildController(IBuildAdvisorService advisor, CatalogService catalo
         Ok(await catalog.GetGamesAsync(cancellationToken));
 
     [HttpGet("components")]
-    public IActionResult GetComponents([FromQuery] ComponentType? type) => Ok(catalog.GetComponents(type));
+    public IActionResult GetComponents([FromQuery] ComponentType? type)
+    {
+        if (type.HasValue && !Enum.IsDefined(type.Value))
+            return BadRequest(new { message = "The component type is invalid." });
+        return Ok(catalog.GetComponents(type));
+    }
 
     [HttpPost("builds/recommend")]
     public async Task<ActionResult<BuildRecommendation>> Recommend([FromBody] BuildRequest request, CancellationToken cancellationToken)
