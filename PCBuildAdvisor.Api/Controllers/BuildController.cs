@@ -29,6 +29,7 @@ public class BuildController(IBuildAdvisorService advisor, CatalogService catalo
     public ActionResult<BuildRecommendation> Evaluate([FromBody] ComputerBuild build)
     {
         if (build is null) return BadRequest(new { message = "A build is required." });
-        return Ok(advisor.EvaluateBuild(build));
+        try { return Ok(advisor.EvaluateBuild(build)); }
+        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
     }
 }

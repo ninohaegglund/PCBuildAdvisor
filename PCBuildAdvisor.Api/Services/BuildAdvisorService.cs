@@ -63,59 +63,7 @@ public class BuildAdvisorService(BuildRepository repository) : IBuildAdvisorServ
         return result;
     }
 
-    public BuildRecommendation EvaluateBuild(ComputerBuild build)
-    {
-        ArgumentNullException.ThrowIfNull(build);
-        var warnings = new List<string>();
-        var feedback = new List<string>();
-        var parts = GetParts(build).ToList();
-
-        if (parts.Count == 0)
-            warnings.Add("Add components to the build to receive compatibility feedback.");
-        if (build.Cpu is not null && build.Motherboard is not null &&
-            build.Cpu.Socket is not null && build.Motherboard.Socket is not null &&
-            !Same(build.Cpu.Socket, build.Motherboard.Socket))
-            warnings.Add($"CPU socket {build.Cpu.Socket} does not match motherboard socket {build.Motherboard.Socket}.");
-
-        if (build.Motherboard is not null && build.Memory.Count > 0 && build.Motherboard.MemoryType is not null)
-        {
-            foreach (var ram in build.Memory.Where(x => x.MemoryType is not null && !Same(x.MemoryType, build.Motherboard.MemoryType)))
-                warnings.Add($"{ram.Name} uses {ram.MemoryType}, but the motherboard supports {build.Motherboard.MemoryType}.");
-        }
-
-        if (build.Motherboard is not null && build.Case is not null &&
-            build.Motherboard.FormFactor is not null && build.Case.SupportedFormFactors.Count > 0 &&
-            !build.Case.SupportedFormFactors.Any(x => Same(x, build.Motherboard.FormFactor)))
-            warnings.Add($"The case may not support the {build.Motherboard.FormFactor} motherboard form factor.");
-
-        if (build.Gpu is not null && build.Case is not null && build.Gpu.LengthMm.HasValue &&
-            TrySpec(build.Case, "GpuClearanceMm", out var gpuClearance) && build.Gpu.LengthMm > gpuClearance)
-            warnings.Add($"GPU length ({build.Gpu.LengthMm} mm) exceeds the case clearance ({gpuClearance} mm).");
-
-        if (build.CpuCooler is not null && build.Case is not null &&
-            TrySpec(build.CpuCooler, "CoolerHeightMm", out var coolerHeight) &&
-            TrySpec(build.Case, "CoolerClearanceMm", out var coolerClearance) && coolerHeight > coolerClearance)
-            warnings.Add($"CPU cooler height ({coolerHeight} mm) exceeds the case clearance ({coolerClearance} mm).");
-
-        var requiredWatts = parts.Sum(x => x.PowerConsumptionWatts ?? 0);
-        if (build.PowerSupply?.Wattage is int psuWatts && requiredWatts > 0 && psuWatts < requiredWatts * 1.25)
-            warnings.Add($"The PSU may have too little headroom: selected parts list about {requiredWatts} W, while the PSU is {psuWatts} W.");
-
-        if (warnings.Count == 0)
-            feedback.Add(parts.Count == 0 ? "No compatibility assessment is available yet." : "No conflicts were found in the compatibility data currently available.");
-        else
-            feedback.Add("Review the listed issues before buying. Checks are limited to the specifications present in this sample catalog.");
-
-        var checkedCount = new[] { build.Cpu, build.Gpu, build.Motherboard, build.PowerSupply, build.Case, build.CpuCooler }
-            .Count(x => x is not null) + build.Memory.Count;
-        return new BuildRecommendation
-        {
-            Build = build,
-            CompatibilityScore = checkedCount == 0 ? 0 : Math.Max(0, 100 - warnings.Count * 25),
-            Feedback = feedback,
-            Warnings = warnings
-        };
-    }
+    public BuildRecommendation EvaluateBuild(ComputerBuild build) => BuildCompatibilityEvaluator.Evaluate(build);
 
     private PcComponent? Choose(ComponentType type, string tier, string? brand = null,
         string? socket = null, string? form = null, int minimumWattage = 0)
@@ -148,9 +96,4 @@ public class BuildAdvisorService(BuildRepository repository) : IBuildAdvisorServ
             .Where(x => x is not null).Cast<PcComponent>().Concat(build.Memory).Concat(build.Storage);
     private static int TierRank(string? tier) => tier?.ToLowerInvariant() switch { "entry" or "low" => 0, "high" => 2, _ => 1 };
     private static bool Same(string? a, string? b) => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
-    private static bool TrySpec(PcComponent component, string key, out int value)
-    {
-        value = 0;
-        return component.Specifications.TryGetValue(key, out var text) && int.TryParse(text, out value);
-    }
 }
