@@ -12,15 +12,16 @@ namespace PCBuildAdvisor.Api.Controllers;
 public class BuildController(IBuildAdvisorService advisor, CatalogService catalog) : ControllerBase
 {
     [HttpGet("games")]
-    public async Task<IActionResult> GetGames() => Ok(await catalog.GetGamesAsync());
+    public async Task<IActionResult> GetGames(CancellationToken cancellationToken) =>
+        Ok(await catalog.GetGamesAsync(cancellationToken));
 
     [HttpGet("components")]
     public IActionResult GetComponents([FromQuery] ComponentType? type) => Ok(catalog.GetComponents(type));
 
     [HttpPost("builds/recommend")]
-    public ActionResult<BuildRecommendation> Recommend([FromBody] BuildRequest request)
+    public async Task<ActionResult<BuildRecommendation>> Recommend([FromBody] BuildRequest request, CancellationToken cancellationToken)
     {
-        try { return Ok(advisor.GenerateBuild(request)); }
+        try { return Ok(await advisor.GenerateBuildAsync(request, cancellationToken)); }
         catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
     }
 

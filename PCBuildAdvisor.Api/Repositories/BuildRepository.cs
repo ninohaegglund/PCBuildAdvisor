@@ -1,24 +1,14 @@
+using Microsoft.EntityFrameworkCore;
+using PCBuildAdvisor.Api.Data;
 using PCBuildAdvisor.Api.Enums;
 using PCBuildAdvisor.Api.Models.Builds;
 using PCBuildAdvisor.Api.Models.Components;
 
 namespace PCBuildAdvisor.Api.Repositories;
 
-/// <summary>Temporary in-memory catalog. Replace with database queries when persistence is added.</summary>
-public class BuildRepository
+/// <summary>Database-backed games and a temporary in-memory component catalog.</summary>
+public class BuildRepository(AdvisorDbContext db)
 {
-    private readonly List<Game> _games =
-    [
-        new() { Id = 1, Name = "Apex Legends", Genre = "Battle royale", Demand = "balanced" },
-        new() { Id = 2, Name = "Call of Duty: Warzone", Genre = "Competitive FPS", Demand = "demanding" },
-        new() { Id = 3, Name = "Cyberpunk 2077", Genre = "Action RPG", Demand = "demanding" },
-        new() { Id = 4, Name = "Elden Ring", Genre = "Action RPG", Demand = "demanding" },
-        new() { Id = 5, Name = "Valorant", Genre = "Competitive FPS", Demand = "light" },
-        new() { Id = 6, Name = "Baldur's Gate 3", Genre = "RPG", Demand = "balanced" },
-        new() { Id = 7, Name = "Forza Horizon 6", Genre = "Racing", Demand = "balanced" },
-        new() { Id = 8, Name = "Minecraft", Genre = "Sandbox", Demand = "light" }
-    ];
-
     private readonly List<PcComponent> _components =
     [
         Part(1, ComponentType.Cpu, "Ryzen 5 7600", "AMD", "AM5", price: 199, tier: "mid", watts: 65),
@@ -41,11 +31,21 @@ public class BuildRepository
         Part(18, ComponentType.CpuCooler, "Pure Rock 2", "be quiet!", price: 39, coolerHeight: 155)
     ];
 
-    public IReadOnlyList<Game> GetGames() => _games;
+    public async Task<IReadOnlyList<Game>> GetGamesAsync(CancellationToken cancellationToken = default) =>
+        await db.Games.AsNoTracking().OrderBy(game => game.Name).ThenBy(game => game.Id)
+            .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<Game>> GetGamesByIdsAsync(IEnumerable<int> ids,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(ids);
+        var selectedIds = ids.Distinct().ToArray();
+        return await db.Games.AsNoTracking().Where(game => selectedIds.Contains(game.Id))
+            .OrderBy(game => game.Name).ThenBy(game => game.Id).ToListAsync(cancellationToken);
+    }
+
     public IReadOnlyList<PcComponent> GetComponents(ComponentType? type = null) =>
         type.HasValue ? _components.Where(x => x.Type == type).ToList() : _components;
-    public IReadOnlyList<Game> GetGamesByIds(IEnumerable<int> ids) =>
-        _games.Where(x => ids.Contains(x.Id)).ToList();
 
     private static PcComponent Part(int id, ComponentType type, string name, string brand,
         string? socket = null, string? memory = null, string? form = null, decimal price = 0,

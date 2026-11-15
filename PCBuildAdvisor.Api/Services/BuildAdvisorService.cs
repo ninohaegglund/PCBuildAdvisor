@@ -9,13 +9,13 @@ namespace PCBuildAdvisor.Api.Services;
 
 public class BuildAdvisorService(BuildRepository repository) : IBuildAdvisorService
 {
-    public BuildRecommendation GenerateBuild(BuildRequest request)
+    public async Task<BuildRecommendation> GenerateBuildAsync(BuildRequest request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.MaximumEstimatedBudget is < 0)
             throw new ArgumentException("Budget cannot be negative.", nameof(request));
 
-        var games = repository.GetGamesByIds(request.GameIds);
+        var games = await repository.GetGamesByIdsAsync(request.GameIds, cancellationToken);
         var tier = GetRecommendedTier(request, games);
         var gaming = request.Purpose is null or BuildPurpose.Gaming;
 
