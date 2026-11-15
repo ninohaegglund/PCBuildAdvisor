@@ -28,6 +28,10 @@ public class BuildController(IBuildAdvisorService advisor, CatalogService catalo
     {
         try { return Ok(await advisor.GenerateBuildAsync(request, cancellationToken)); }
         catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+        catch (BuildSelectionException ex)
+        {
+            return UnprocessableEntity(new { message = ex.Message, minimumEstimatedTotal = ex.MinimumEstimatedTotal });
+        }
     }
 
     [HttpPost("builds/evaluate")]
