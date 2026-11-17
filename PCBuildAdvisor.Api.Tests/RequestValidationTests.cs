@@ -202,8 +202,13 @@ public class RequestValidationTests
         return new BuildController(new BuildAdvisorService(repository), new CatalogService(repository));
     }
 
-    private static AdvisorDbContext CreateDatabase() => new(
-        new DbContextOptionsBuilder<AdvisorDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options);
+    private static AdvisorDbContext CreateDatabase()
+    {
+        var db = new AdvisorDbContext(
+            new DbContextOptionsBuilder<AdvisorDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options);
+        AdvisorDbSeeder.SeedComponentsAsync(db).GetAwaiter().GetResult();
+        return db;
+    }
 }

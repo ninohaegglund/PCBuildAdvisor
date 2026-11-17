@@ -1,6 +1,7 @@
 using PCBuildAdvisor.Api.DTOs;
 using PCBuildAdvisor.Api.Enums;
 using PCBuildAdvisor.Api.Models.Builds;
+using PCBuildAdvisor.Api.Models.Components;
 using PCBuildAdvisor.Api.Repositories;
 using PCBuildAdvisor.Api.Services.Interfaces;
 
@@ -12,11 +13,15 @@ public class BuildAdvisorService(BuildRepository repository) : IBuildAdvisorServ
     {
         ValidateRequest(request);
 
+        var components = repository.GetComponents();
+        ValidatePreference(components, ComponentType.Cpu, request.CpuPreference);
+        ValidatePreference(components, ComponentType.Gpu, request.GpuPreference);
+
         var games = await repository.GetGamesByIdsAsync(request.GameIds, cancellationToken);
         if (games.Count != request.GameIds.Distinct().Count())
             throw new ArgumentException("One or more selected game IDs were not found in the catalog.", nameof(request));
         var tier = GetRecommendedTier(request, games);
-        var result = BuildSelector.Select(repository.GetComponents(), request, tier, cancellationToken);
+        var result = BuildSelector.Select(components, request, tier, cancellationToken);
         result.Build.Games = games.ToList();
         result.Feedback.Insert(0, $"Starter recommendation targeting the {tier} CPU/GPU tier for the selected use case.");
         result.Feedback.Add($"Estimated component total: {result.EstimatedTotal:0.00}. These are manually maintained sample estimates, not live prices.");
@@ -39,14 +44,13 @@ public class BuildAdvisorService(BuildRepository repository) : IBuildAdvisorServ
         if (!new[] { "value", "balanced", "high" }.Any(goal => Same(goal, request.PerformanceGoal)))
             throw new ArgumentException("Performance goal must be value, balanced, or high.", nameof(request));
 
-        ValidatePreference(ComponentType.Cpu, request.CpuPreference);
-        ValidatePreference(ComponentType.Gpu, request.GpuPreference);
     }
 
-    private void ValidatePreference(ComponentType type, string? preference)
+    private static void ValidatePreference(IReadOnlyList<PcComponent> components, ComponentType type,
+        string? preference)
     {
         if (!string.IsNullOrWhiteSpace(preference) &&
-            !repository.GetComponents(type).Any(part => Same(part.Manufacturer, preference)))
+            !components.Any(part => part.Type == type && Same(part.Manufacturer, preference)))
             throw new ArgumentException($"The {type} manufacturer preference is not available in the current catalog.");
     }
 

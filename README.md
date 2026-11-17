@@ -62,7 +62,7 @@ Implemented checks cover CPU socket, RAM generation and total capacity, motherbo
 
 ## Current limits
 
-- Games are read from SQL; components remain 18 in-memory sample products. Prices are illustrative, with no live stock or currency conversion. Budget values must use the same units as those sample prices.
+- Games are read from SQL. On startup, the API seeds 18 starter sample components into SQL when their type/model-number pairs are missing; existing component rows are left unchanged. Prices are illustrative, with no live stock or currency conversion. Budget values must use the same units as those sample prices.
 - Selection enumerates the small sample catalog. Expand it with a bounded search strategy before importing a large catalog.
 - Game demand and CPU/GPU tiers are heuristics, not benchmark-backed FPS predictions. BIOS support, storage ports/slots, memory module counts, power connectors, and cooling performance are not yet checked.
 - `mode` is retained as metadata; separate custom/manual generation workflows, saved builds, and retailer integration are not implemented.

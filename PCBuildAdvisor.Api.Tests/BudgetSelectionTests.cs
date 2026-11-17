@@ -161,6 +161,11 @@ public class BudgetSelectionTests
         Assert.Equal(2, result.Build.Games.Count);
     }
 
-    private static AdvisorDbContext CreateDatabase() => new(
-        new DbContextOptionsBuilder<AdvisorDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+    private static AdvisorDbContext CreateDatabase()
+    {
+        var db = new AdvisorDbContext(
+            new DbContextOptionsBuilder<AdvisorDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        AdvisorDbSeeder.SeedComponentsAsync(db).GetAwaiter().GetResult();
+        return db;
+    }
 }

@@ -35,6 +35,7 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<PCBuildAdvisor.Api.Data.AdvisorDbContext>();
     await db.Database.MigrateAsync();
     await PCBuildAdvisor.Api.Data.AdvisorDbSeeder.SeedGamesAsync(db);
+    await PCBuildAdvisor.Api.Data.AdvisorDbSeeder.SeedComponentsAsync(db);
 }
 
 app.Run();
